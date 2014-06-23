@@ -15,12 +15,11 @@ http://www.mulesoft.org/schema/mule/siebel http://www.mulesoft.org/schema/mule/s
 	<!-- This is the main configuration files, you should place here all the Connectors configuration an declarations -->
 
     <context:property-placeholder location="common.properties, mule.${mule.env}.properties"/>
-    <sfdc:config name="Salesforce" username="mayrec3@hotovo.org" password="Mrhotovo001" securityToken="JJUdIk68uTEDLCCGXocsOkVx" doc:name="Salesforce"/>
-    <siebel:config name="Oracle_Siebel_Business_Objects" user="SADMIN" password="SADMIN" server="23.21.233.175" serverName="SBA_82" objectManager="EAIObjMgr_enu" dataSenseFilterQueryBusComp="[Name] = 'Contact' or [Name] = 'Account'" doc:name="Oracle Siebel Business Objects">
+    <sfdc:config name="Salesforce" username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}" url="${sfdc.url}" doc:name="Salesforce A" doc:description="Your SalesForce instance. This is the source organization, where accounts will be migrated from.">
+        <sfdc:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
+    </sfdc:config>
+ 
+    <siebel:config name="Oracle_Siebel_Business_Objects" user="${sieb.user}" password="${sieb.password}" server="${sieb.server}" serverName="${sieb.serverName}" objectManager="${sieb.objectManager}" doc:name="Oracle Siebel Business Objects" doc:description="Oracle Siebel Business Objects instance" port="${sieb.port}">
         <siebel:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
     </siebel:config>
-<!--     <sfdc:config name="Salesforce" username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}" url="${sfdc.url}" doc:name="Salesforce"/> -->
-<!--     <siebel:config name="Oracle_Siebel_Business_Objects" user="${sieb.user}" password="${sieb.password}" server="${sieb.server}" port="${sieb.port}" serverName="${sieb.serverName}" objectManager="${sieb.objectManager}" language="${sieb.language}" fileEncoding="${sieb.encoding}" doc:name="Oracle Siebel Business Objects"> -->
-<!--         <siebel:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/> -->
-<!--     </siebel:config> -->
 </mule>
