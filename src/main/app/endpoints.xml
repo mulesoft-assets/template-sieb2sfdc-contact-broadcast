@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:imap="http://www.mulesoft.org/schema/mule/imap" xmlns:siebel="http://www.mulesoft.org/schema/mule/siebel" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      version="EE-3.5.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/siebel http://www.mulesoft.org/schema/mule/siebel/current/mule-siebel.xsd
+http://www.mulesoft.org/schema/mule/imap http://www.mulesoft.org/schema/mule/imap/current/mule-imap.xsd">
+
+	<!-- 	In this file you should declare all your inbound endpoints and from here controll the access to your application -->
+
+	<flow name="triggerFlow" processingStrategy="synchronous" doc:name="triggerFlow">
+		<poll doc:name="Salesforce for users">
+            <fixed-frequency-scheduler frequency="${poll.frequencyMillis}" startDelay="${poll.startDelayMillis}"/>
+            <watermark variable="lastQueryDate" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[org.joda.time.format.DateTimeFormat.forPattern(&quot;M/d/y H:m:s&quot;).parseDateTime(payload['Last Update - SDQ'])]"/>
+            <siebel:query-business-components config-ref="Oracle_Siebel_Business_Objects" businessObjectComponentType="Contact.Contact" searchExpression="[Last Update - SDQ] &gt; '#[org.joda.time.format.DateTimeFormat.forPattern(&quot;M/d/y H:m:s&quot;).print(flowVars['lastQueryDate'])]" doc:name="Oracle Siebel Business Objects">
+                <siebel:fields-to-retrieve>
+                	<siebel:fields-to-retrieve>Id</siebel:fields-to-retrieve>
+					 <siebel:fields-to-retrieve>Email Address</siebel:fields-to-retrieve>
+					 <siebel:fields-to-retrieve>First Name</siebel:fields-to-retrieve>
+					 <siebel:fields-to-retrieve>Last Name</siebel:fields-to-retrieve>
+					 <siebel:fields-to-retrieve>Work Phone #</siebel:fields-to-retrieve>					 
+					 <siebel:fields-to-retrieve>Home Phone #</siebel:fields-to-retrieve>
+					 <siebel:fields-to-retrieve>Fax Phone #</siebel:fields-to-retrieve>					 
+					 <siebel:fields-to-retrieve>Birth Date</siebel:fields-to-retrieve>
+					 <siebel:fields-to-retrieve>Assistant</siebel:fields-to-retrieve>
+					 <siebel:fields-to-retrieve>Account</siebel:fields-to-retrieve>
+					 <siebel:fields-to-retrieve>Last Update - SDQ</siebel:fields-to-retrieve>
+                </siebel:fields-to-retrieve>
+            </siebel:query-business-components>
+
+        </poll>
+        <logger message="lastQueryDate:  #[flowVars.'lastQueryDate']" level="INFO" doc:name="Log lastQueryDate"/>
+        <batch:execute name="syncContactsBatch" doc:name="Trigger Batch execute for Upsert in Salesforce"/>
+
+    
+    </flow>
+</mule>

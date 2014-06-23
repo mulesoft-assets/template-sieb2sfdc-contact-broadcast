@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:siebel="http://www.mulesoft.org/schema/mule/siebel" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" version="EE-3.5.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/siebel http://www.mulesoft.org/schema/mule/siebel/current/mule-siebel.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+    <sub-flow name="insertContactSF1" doc:name="insertContactSF">
+        <sfdc:create config-ref="Salesforce" type="Contact" doc:name="Salesforce">
+            <sfdc:objects ref="#[payload]"/>
+        </sfdc:create>
+    </sub-flow>
+    <sub-flow name="createAccountSiebel1" doc:name="createAccountSiebel">
+        <siebel:create-business-component config-ref="Oracle_Siebel_Business_Objects" businessObjectComponentType="Account.Account" doc:name="Oracle Siebel Business Objects">
+            <siebel:business-component-fields ref="#[payload]"/>
+        </siebel:create-business-component>
+    </sub-flow>
+    <sub-flow name="deleteAccountSiebel1" doc:name="deleteAccountSiebel">
+        <foreach doc:name="For Each">
+            <siebel:delete-business-component config-ref="Oracle_Siebel_Business_Objects" businessComponentId="#[payload]" businessObjectComponentType="Account.Account" doc:name="Oracle Siebel Business Objects"/>
+        </foreach>
+    </sub-flow>
+    <sub-flow name="selectAccountSiebel1" doc:name="selectAccountSiebel">
+        <siebel:query-business-components config-ref="Oracle_Siebel_Business_Objects" businessObjectComponentType="Account.Account" searchExpression="[Name] = '#[payload[&quot;Name&quot;]]'" doc:name="Oracle Siebel Business Objects">
+            <siebel:fields-to-retrieve>
+                <siebel:fields-to-retrieve>Id</siebel:fields-to-retrieve>
+            </siebel:fields-to-retrieve>
+        </siebel:query-business-components>
+    </sub-flow>
+    <sub-flow name="deleteAccountSF1" doc:name="deleteAccountSF">
+        <sfdc:delete config-ref="Salesforce" doc:name="Salesforce">
+            <sfdc:ids ref="#[payload]"/>
+        </sfdc:delete>
+    </sub-flow>
+    <sub-flow name="selectAccountSF1" doc:name="selectAccountSF">
+        <sfdc:query-single config-ref="Salesforce" query="SELECT Id,Name FROM Account WHERE Name = '#[payload]'" doc:name="Salesforce"/>
+    </sub-flow>
+    <sub-flow name="deleteContactSiebel1" doc:name="deleteContactSiebel">
+        <foreach doc:name="For Each">
+            <siebel:delete-business-component config-ref="Oracle_Siebel_Business_Objects" businessComponentId="#[payload]" businessObjectComponentType="Contact.Contact" doc:name="Oracle Siebel Business Objects"/>
+        </foreach>
+    </sub-flow>
+    <sub-flow name="deleteContactSF1" doc:name="deleteContactSF">
+        <sfdc:delete config-ref="Salesforce" doc:name="Salesforce">
+            <sfdc:ids ref="#[payload]"/>
+        </sfdc:delete>
+    </sub-flow>
+    <sub-flow name="insertContactSiebel1" doc:name="insertContactSiebel">
+        <siebel:create-business-component config-ref="Oracle_Siebel_Business_Objects" businessObjectComponentType="Contact.Contact" doc:name="Oracle Siebel Business Objects">
+            <siebel:business-component-fields ref="#[payload]"/>
+        </siebel:create-business-component>
+    </sub-flow>
+    <sub-flow name="selectContactSF1" doc:name="selectContactSF">
+        <sfdc:query config-ref="Salesforce" query="dsql:SELECT FirstName,Email FROM Contact where Email = '#[payload[&quot;Email Address&quot;]]'" doc:name="Salesforce"/>
+    </sub-flow>
+</mule>
