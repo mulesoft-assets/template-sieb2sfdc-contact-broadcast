@@ -13,17 +13,23 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
     
     <batch:job name="syncContactsBatch">
         <batch:threading-profile poolExhaustedAction="WAIT"/>
+        <batch:input>
+            <logger message="AAAAAAAAAAAAA" level="INFO" doc:name="Logger"/>
+        </batch:input>
         <batch:process-records>
             <batch:step name="forEachContactInAGetContactInBStep">
+
                 <enricher source="#[payload]" target="#[recordVars['contactInB']]" doc:name="Message Enricher">
                     <sfdc:query-single config-ref="Salesforce" query="SELECT Id FROM Contact WHERE Email = '#[payload[&quot;Email Address&quot;]]'" doc:name="Query Salesforce for existing Contact"/>
                 </enricher>
+                <logger message="00000000000000000000 &lt;#[payload['Account']  != '']&gt; #[payload]" level="INFO" doc:name="Logger"/>
             </batch:step>
-            <batch:step name="findOrCreateAccountInBSetp" accept-expression="payload['Account'] != ''">
+            <batch:step name="findOrCreateAccountInBSetp" accept-expression="payload['Account'] != ''" accept-policy="ALL">
+                <logger message="3333333333333333 #[payload]" level="INFO" doc:name="Logger"/>
                 
-                <enricher doc:name="Message Enricher">
+                <enricher doc:name="store result in 'accountInTargetInstance'" source="#[payload]" target="#[recordVars['accountInTargetInstance']]">
                     <sfdc:query-single config-ref="Salesforce" query="SELECT Id,Name from Account where Name = '#payload[&quot;Account&quot;]'" doc:name="Query Salesforce for existing Account"/>
-                    <enrich source="#[payload]" target="#[recordVars['accountInTargetInstance']]"/>
+
                 </enricher>
                 <choice doc:name="Choice">
                     <when expression="#[recordVars['accountInTargetInstance'] is NullPayload]">
@@ -37,7 +43,8 @@ payload['Account'].put('NumberOfEmployees', payload['Account']['NumberOfEmployee
                                 <sfdc:create config-ref="Salesforce" type="Account" doc:name="create account in B instance">
                                     <sfdc:objects ref="#[payload]"/>
                                 </sfdc:create>
-
+                                <logger message="555555555555555555 #[payload]" level="INFO" doc:name="Logger"/>
+																	  
                                 <expression-transformer expression="#[payload[0].getId()]" doc:name="get the id of the account created"/>
                             </processor-chain>
                         </enricher>
@@ -46,15 +53,16 @@ payload['Account'].put('NumberOfEmployees', payload['Account']['NumberOfEmployee
                         <enricher source="#[payload]" target="#[recordVars['idOfAccountInTargetInstance']]" doc:name="store id of account in B">
                             <expression-transformer expression="#[recordVars['accountInTargetInstance']['Id']]" doc:name="get the id of the account in target"/>
                         </enricher>
+                        <logger message="4444444444444444 #[payload]" level="INFO" doc:name="Logger"/>
                     </otherwise>
                 </choice>
 
             </batch:step>
             <batch:step name="forEachContactThatShouldBeUpsertedInB">
-
-
+                <logger message="22222222222222222 #[payload]" level="INFO" doc:name="Logger"/>
             	<data-mapper:transform doc:name="Contact.Contact To Contact" config-ref="Contact_Contact_To_Contact"/>
-                <expression-component doc:name="set contact's parent account id"><![CDATA[payload.put('AccountId', recordVars['idOfAccountInTargetInstance']);
+                <expression-component doc:name="set contact's parent account id"><![CDATA[System.err.println("aaaaaaaaaaaaaa");
+payload.put('AccountId', recordVars['idOfAccountInTargetInstance']);
 
 if (recordVars['contactInB'] instanceof NullPayload){  
   	payload.remove('Id');  
@@ -62,19 +70,12 @@ if (recordVars['contactInB'] instanceof NullPayload){
   else {  
   	payload.put('Id', recordVars['contactInB']['Id']);  
   }]]></expression-component>
-
-  
-					
                 <batch:commit doc:name="Batch Commit" size="200">
-
-
                     <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Contact" doc:name="Salesforce">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
                     <logger message="after upsert: #[payload]" level="INFO" doc:name="log result"/>
-
                 </batch:commit>
-
             </batch:step>
             
         </batch:process-records>

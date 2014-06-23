@@ -74,6 +74,7 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 	
 	@Before
 	public void setUp() throws Exception {
+		stopFlowSchedulers("triggerFlow");
 		helper = new BatchTestHelper(muleContext);
 		// Flow to retrieve accounts from target system after sync in g
 		retrieveContactFromSFFlow = getSubFlow("selectContactSF1");
@@ -89,6 +90,7 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 
 	@Test
 	public void testMainFlow() throws Exception {
+		runSchedulersOnce("triggerFlow");
 		runFlow("mainFlow");
 		
 		// Wait for the batch job executed by the poll flow to finish
