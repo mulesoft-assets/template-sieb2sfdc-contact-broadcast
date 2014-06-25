@@ -71,14 +71,18 @@ if (recordVars['contactInB'] instanceof NullPayload){
   	payload.put('Id', recordVars['contactInB']['Id']);  
   }]]></expression-component>
                 <batch:commit doc:name="Batch Commit" size="200">
-                    <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Contact" doc:name="Salesforce">
+                    <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Contact" doc:name="upsert Contact in Salesforce">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
                     <logger message="after upsert: #[payload]" level="INFO" doc:name="log result"/>
                 </batch:commit>
+                <logger message="aaaaaaaaaaaaaaaaaaaaaaaaaaaaa" level="INFO" doc:name="Logger"/>
             </batch:step>
             
         </batch:process-records>
+        <batch:on-complete>
+            <logger message="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" level="INFO" doc:name="Logger"/>
+        </batch:on-complete>
     </batch:job>
     <flow name="mainFlow" doc:name="mainFlow" doc:description="This flow is the entry point to the Kick business logic.
 

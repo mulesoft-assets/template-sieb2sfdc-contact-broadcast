@@ -53,7 +53,7 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 	private static final String KEY_ACCOUNT = "Account";
 	protected static final int TIMEOUT_SEC = 60;
 	protected static final String TEMPLATE_NAME = "contact-migration";
-	private String accountName = TEMPLATE_NAME + "-account";
+	private String accountName = TEMPLATE_NAME + "-account-"+System.currentTimeMillis();
 	
 	protected SubflowInterceptingChainLifecycleWrapper retrieveContactFromSFFlow;
 	private List<Map<String, Object>> createdContactsInA = new ArrayList<Map<String, Object>>(),
@@ -83,13 +83,15 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 	}
 
 	@After
-	public void tearDown() throws Exception {		
-		deleteTestContactsFromSandBoxA();		
-		deleteTestContactsFromSandBoxB();
+	public void tearDown() throws Exception {
+		System.err.println("delete ");
+		//deleteTestContactsFromSandBoxA();		
+		//deleteTestContactsFromSandBoxB();
 	}
 
 	@Test
 	public void testMainFlow() throws Exception {
+		System.err.println("test ");
 		runSchedulersOnce("triggerFlow");
 		runFlow("mainFlow");
 		
@@ -131,7 +133,7 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 		// Create object in target system to be updated
 		
 		account.put("Name", accountName);
-		String uniqueSuffix = "_" + TEMPLATE_NAME;
+		String uniqueSuffix = "_" + TEMPLATE_NAME + "_" + System.currentTimeMillis();
 		
 		Map<String, Object> contact_3_B = new HashMap<String, Object>();
 		contact_3_B.put(KEY_FIRST_NAME_SF, "Name_3_B" + uniqueSuffix);
@@ -159,8 +161,8 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 				
 
 		Map<String, Object> contact_1_A = new HashMap<String, Object>();
-		contact_1_A.put(KEY_FIRST_NAME,  "Name_updated");
-		contact_1_A.put(KEY_LAST_NAME, "Name_1_A");
+		contact_1_A.put(KEY_FIRST_NAME,  "Name_updated_"+uniqueSuffix);
+		contact_1_A.put(KEY_LAST_NAME, "Name_1_A_"+uniqueSuffix);
 		contact_1_A.put(KEY_EMAIL, contact_3_B.get(KEY_EMAIL_SF));
 		createdContactsInA.add(contact_1_A);
 		
