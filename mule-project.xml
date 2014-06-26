@@ -2,4 +2,5 @@
 <mule-project xmlns="http://www.mulesoft.com/tooling/project" runtimeId="org.mule.tooling.server.3.5.0.ee" schemaVersion="3.5.0.0">
     <name>template-sieb2sfdc-contact-broadcast</name>
     <description></description>
+    <muleExtension name="Oracle Siebel Business Object" qualifier="org.mule.tooling.ui.contribution.siebel"/>
 </mule-project>

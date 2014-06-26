@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +16,7 @@
 	<name>template-sieb2sfdc-contact-broadcast Anypoint Template Project</name>
 
 	<properties>
-
+		<siebel.version>1.0.0</siebel.version>
 	</properties>
 
 	<build>
@@ -26,11 +27,11 @@
 				<configuration>
 					<copyToAppsDirectory>true</copyToAppsDirectory>
 					<inclusions>
+						<inclusion>
+							<groupId>org.mule.modules</groupId>
+							<artifactId>mule-module-sfdc</artifactId>
+						</inclusion>
 					<inclusion>
-                            <groupId>org.mule.modules</groupId>
-                            <artifactId>mule-module-sfdc</artifactId>
-                        </inclusion>
-                    <inclusion>
                             <groupId>org.mule.modules</groupId>
                             <artifactId>mule-module-siebel</artifactId>
                         </inclusion>
@@ -41,34 +42,16 @@
 	</build>
 
 	<dependencies>
-
-	<dependency>
-            <groupId>org.mule.modules</groupId>
-            <artifactId>mule-module-sfdc</artifactId>
-            <version>5.4.7</version>
-        </dependency>
-    <dependency>
+		<!-- Connectors -->
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-module-sfdc</artifactId>
+			<version>${sfdc.version}</version>
+		</dependency>
+		<dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-siebel</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-        </dependency>
-    <dependency>
-            <groupId>com.mulesoft.muleesb.modules</groupId>
-            <artifactId>mule-module-batch-ee</artifactId>
-            <version>${mule.version}</version>
-            <scope>provided</scope>
-        </dependency>
-    <dependency>
-            <groupId>org.mule.transports</groupId>
-            <artifactId>mule-transport-email</artifactId>
-            <version>${mule.version}</version>
-            <scope>provided</scope>
-        </dependency>
-    <dependency>
-            <groupId>org.mule.modules</groupId>
-            <artifactId>mule-module-spring-config</artifactId>
-            <version>${mule.version}</version>
-            <scope>provided</scope>
+            <version>${siebel.version}</version>
         </dependency>
     </dependencies>
 
@@ -85,7 +68,8 @@
 			<url>https://repository.mulesoft.org/nexus/content/repositories/snapshots/</url>
 			<layout>default</layout>
 		</repository>
-	</repositories>	
+	</repositories>
+
 	<scm>
 		<connection>scm:git:https://github.com/mulesoft/template-sieb2sfdc-contact-broadcast.git</connection>
 		<developerConnection>scm:git:https://github.com/mulesoft/template-sieb2sfdc-contact-broadcast.git</developerConnection>
