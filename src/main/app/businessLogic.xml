@@ -35,8 +35,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
                             <processor-chain doc:name="Processor Chain">
                                 <expression-component doc:name="prepare account for creation"><![CDATA[String name = payload['Account'];
 payload['Account'] = new java.util.HashMap();
-payload['Account'].put('Name', name);
-payload['Account'].put('NumberOfEmployees', payload['Account']['NumberOfEmployees'] == null ? 0 :  Integer.parseInt(payload['Account']['NumberOfEmployees']));]]></expression-component>
+payload['Account'].put('Name', name);]]></expression-component>
                                 <set-payload value="#[ [payload['Account']]]" doc:name="set payload with account to be created"/>
                                 <sfdc:create config-ref="Salesforce" type="Account" doc:name="create account in B instance">
                                     <sfdc:objects ref="#[payload]"/>
