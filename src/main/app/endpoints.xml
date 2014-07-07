@@ -39,8 +39,6 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 
         </poll>
         <logger message="lastQueryDate:  #[flowVars.'lastQueryDate']" level="INFO" doc:name="Log lastQueryDate"/>
-        <batch:execute name="syncContactsBatch" doc:name="Trigger Batch execute for Upsert in Salesforce"/>
-
-    
+        <flow-ref name="mainFlow" doc:name="Trigger mainFlow for Upsert in Salesforce"/>
     </flow>
 </mule>

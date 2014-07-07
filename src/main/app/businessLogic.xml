@@ -80,13 +80,9 @@ if (recordVars['contactInB'] instanceof NullPayload){
             <logger message="batch completed #[payload]" level="INFO" doc:name="log batch completed"/>
         </batch:on-complete>
     </batch:job>
-    <flow name="mainFlow" doc:name="mainFlow" doc:description="This flow is the entry point to the Kick business logic.
 
-This flow should control the direction of the application, and it should be called by the different endpoints that your Template exposes to trigger it.
-
-">
+    <flow name="mainFlow" doc:name="mainFlow">
         <batch:execute name="syncContactsBatch" doc:name="Batch Execute"/>
-
         <exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="Reference Exception Strategy"/>
     </flow>
 </mule>

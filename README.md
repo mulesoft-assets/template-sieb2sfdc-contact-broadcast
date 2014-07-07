@@ -4,6 +4,8 @@
 + [License Agreement](#licenseagreement)
 + [Use Case](#usecase)
 + [Considerations](#considerations)
+	* [Salesforce Considerations](#salesforceconsiderations)
+	* [Siebel Considerations](#siebelconsiderations)
 + [Run it!](#runit)
 	* [Running on premise](#runonopremise)
 	* [Running on Studio](#runonstudio)
@@ -34,8 +36,48 @@ As implemented, this Anypoint Template leverage the [Batch Module](http://www.mu
 
 # Considerations <a name="considerations"/>
 
-
 To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both source and destination systems, that must be made in order for all to run smoothly. **Failling to do so could lead to unexpected behavior of the template.**
+
+
+
+## Salesforce Considerations <a name="salesforceconsiderations"/>
+
+There may be a few things that you need to know regarding Salesforce, in order for this template to work.
+
+In order to have this template working as expected, you should be aware of your own Salesforce field configuration.
+
+###FAQ
+
+ - Where can I check that the field configuration for my Salesforce instance is the right one?
+
+    [Salesforce: Checking Field Accessibility for a Particular Field][1]
+
+- Can I modify the Field Access Settings? How?
+
+    [Salesforce: Modifying Field Access Settings][2]
+
+
+[1]: https://help.salesforce.com/HTViewHelpDoc?id=checking_field_accessibility_for_a_particular_field.htm&language=en_US
+[2]: https://help.salesforce.com/HTViewHelpDoc?id=modifying_field_access_settings.htm&language=en_US
+
+
+### As destination of data
+
+There are no particular considerations for this Anypoint Template regarding Siebel as data destination.
+## Siebel Considerations <a name="siebelconsiderations"/>
+
+There may be a few things that you need to know regarding Siebel, in order for this template to work.
+
+This Anypoint Template may be using date time/timestamp fields from the Siebe in order to do comparisons and take further actions.
+While the template handles the time zone by sending all such fields in a neutral time zone, it can not find out on its on the time zone in which the Siebel instance is on.
+It will be up to the user of this template to provide such information. To find out more about Siebel time zones please check the following [link](http://docs.oracle.com/cd/B40099_02/books/Fundamentals/Fund_settingoptions3.html)
+
+
+### As source of data
+
+There are no particular considerations for this Anypoint Template regarding Siebel as data origin.
+
+
 
 # Run it! <a name="runit"/>
 Simple steps to get Siebel to Salesforce Contact Broadcast running.
