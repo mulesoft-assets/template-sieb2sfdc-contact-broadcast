@@ -17,38 +17,38 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         <batch:process-records>
             <batch:step name="getContactInSalesforceStep">
 
-                <enricher source="#[payload]" target="#[recordVars['contactInB']]" doc:name="Message Enricher">
-                    <sfdc:query-single config-ref="Salesforce" query="SELECT Id FROM Contact WHERE Email = '#[payload[&quot;Email Address&quot;]]'" doc:name="Query Salesforce for existing Contact"/>
+                <enricher source="#[payload]" target="#[recordVars['contactInB']]" doc:name="store Salesforce contact in var 'contactInB'">
+                    <sfdc:query-single config-ref="Salesforce" query="SELECT Id FROM Contact WHERE Email = '#[payload[&quot;Email Address&quot;]]'" doc:name="query contacts from Salesforce"/>
                 </enricher>
 
             </batch:step>
             <batch:step name="findOrCreateAccountInSalesforceStep" accept-expression="payload['Account'] != ''" accept-policy="ALL">
 
                 
-                <enricher doc:name="store result in 'accountInTargetInstance'" source="#[payload]" target="#[recordVars['accountInTargetInstance']]">
-                    <sfdc:query-single config-ref="Salesforce" query="SELECT Id,Name from Account where Name = '#payload[&quot;Account&quot;]'" doc:name="Query Salesforce for existing Account"/>
+                <enricher doc:name="store Salesforce account in var 'accountInTargetInstance'" source="#[payload]" target="#[recordVars['accountInTargetInstance']]">
+                    <sfdc:query-single config-ref="Salesforce" query="SELECT Id,Name from Account where Name = '#payload[&quot;Account&quot;]'" doc:name="query accounts from Salesforce"/>
 
                 </enricher>
                 <choice doc:name="Choice">
                     <when expression="#[recordVars['accountInTargetInstance'] is NullPayload]">
-                        <enricher source="#[payload]" target="#[recordVars['idOfAccountInTargetInstance']]" doc:name="store id of account in target instance">
+                        <enricher source="#[payload]" target="#[recordVars['idOfAccountInTargetInstance']]" doc:name="store id of the new account in var 'idOfAccountInTargetInstance'">
                             <processor-chain doc:name="Processor Chain">
                                 <expression-component doc:name="prepare account for creation"><![CDATA[String name = payload['Account'];
 payload['Account'] = new java.util.HashMap();
 payload['Account'].put('Name', name);]]></expression-component>
-                                <set-payload value="#[ [payload['Account']]]" doc:name="set payload with account to be created"/>
-                                <sfdc:create config-ref="Salesforce" type="Account" doc:name="create account in B instance">
+                                <set-payload value="#[ [payload['Account']]]" doc:name="set to the account to be created"/>
+                                <sfdc:create config-ref="Salesforce" type="Account" doc:name="create account in Salesforce">
                                     <sfdc:objects ref="#[payload]"/>
                                 </sfdc:create>
 
 																	  
-                                <expression-transformer expression="#[payload[0].getId()]" doc:name="get the id of the account created"/>
+                                <expression-transformer expression="#[payload[0].getId()]" doc:name="get the id of the account created in Salesforce"/>
                             </processor-chain>
                         </enricher>
                     </when>
                     <otherwise>
-                        <enricher source="#[payload]" target="#[recordVars['idOfAccountInTargetInstance']]" doc:name="store id of account in B">
-                            <expression-transformer expression="#[recordVars['accountInTargetInstance']['Id']]" doc:name="get the id of the account in target"/>
+                        <enricher source="#[payload]" target="#[recordVars['idOfAccountInTargetInstance']]" doc:name="store id of the existing account in Siebel in var 'idOfAccountInTargetInstance'">
+                            <expression-transformer expression="#[recordVars['accountInTargetInstance']['Id']]" doc:name="get the id of the existing account in Siebel"/>
                         </enricher>
 
                     </otherwise>
@@ -57,7 +57,7 @@ payload['Account'].put('Name', name);]]></expression-component>
             </batch:step>
             <batch:step name="forEachContactUpsertInSalesforceStep">
 
-            	<data-mapper:transform doc:name="Contact.Contact To Contact" config-ref="Contact_Contact_To_Contact"/>
+            	<data-mapper:transform doc:name="transform Siebel contact to Salesforce contact" config-ref="Contact_Contact_To_Contact"/>
                 <expression-component doc:name="set contact's parent account id"><![CDATA[payload.put('AccountId', recordVars['idOfAccountInTargetInstance']);
 
 if (recordVars['contactInB'] instanceof NullPayload){  
@@ -67,7 +67,7 @@ if (recordVars['contactInB'] instanceof NullPayload){
   	payload.put('Id', recordVars['contactInB']['Id']);  
   }]]></expression-component>
                 <batch:commit doc:name="Batch Commit" size="200">
-                    <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Contact" doc:name="upsert Contact in Salesforce">
+                    <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Contact" doc:name="upsert contact in Salesforce">
                         <sfdc:objects ref="#[payload]"/>
                     </sfdc:upsert>
                     <logger message="after upsert: #[payload]" level="INFO" doc:name="log result"/>
@@ -76,13 +76,10 @@ if (recordVars['contactInB'] instanceof NullPayload){
             </batch:step>
             
         </batch:process-records>
-        <batch:on-complete>
-            <logger message="batch completed #[payload]" level="INFO" doc:name="log batch completed"/>
-        </batch:on-complete>
     </batch:job>
 
     <flow name="mainFlow" doc:name="mainFlow">
-        <batch:execute name="syncContactsBatch" doc:name="Batch Execute"/>
-        <exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="Reference Exception Strategy"/>
+        <batch:execute name="syncContactsBatch" doc:name="trigger syncContactsBatch"/>
+        <exception-strategy ref="defaultChoiceExceptionStrategy" doc:name="catch Exception and call defaultChoiceExceptionStrategy"/>
     </flow>
 </mule>
