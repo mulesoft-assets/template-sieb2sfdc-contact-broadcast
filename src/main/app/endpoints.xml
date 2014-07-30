@@ -20,8 +20,8 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 	<flow name="triggerFlow" processingStrategy="synchronous" doc:name="triggerFlow">
 		<poll doc:name="">
             <fixed-frequency-scheduler frequency="${poll.frequency}" startDelay="${poll.startDelayMillis}"/>
-            <watermark variable="lastQueryDate" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[org.joda.time.format.DateTimeFormat.forPattern(&quot;M/d/y H:m:s&quot;).parseDateTime(payload['Last Update - SDQ'])]"/>
-            <siebel:query-business-components config-ref="Oracle_Siebel_Business_Objects" businessObjectComponentType="Contact.Contact" searchExpression="[Last Update - SDQ] &gt; '#[org.joda.time.format.DateTimeFormat.forPattern(&quot;M/d/y H:m:s&quot;).print(flowVars['lastQueryDate'])]" doc:name="query accounts with filtering criteria from Oracle Siebel">
+            <watermark variable="siebelLastQueryDate" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[org.joda.time.format.DateTimeFormat.forPattern(&quot;M/d/y H:m:s&quot;).parseMillis(payload['Last Update - SDQ'])]"/>
+            <siebel:query-business-components config-ref="Oracle_Siebel_Business_Objects" businessObjectComponentType="Contact.Contact" searchExpression="[Last Update - SDQ] &gt; '#[org.joda.time.format.DateTimeFormat.forPattern(&quot;M/d/y H:m:s&quot;).print(flowVars['siebelLastQueryDate'])]'" doc:name="query accounts with filtering criteria from Oracle Siebel">
                 <siebel:fields-to-retrieve>
                 	<siebel:fields-to-retrieve>Id</siebel:fields-to-retrieve>
 					 <siebel:fields-to-retrieve>Email Address</siebel:fields-to-retrieve>
