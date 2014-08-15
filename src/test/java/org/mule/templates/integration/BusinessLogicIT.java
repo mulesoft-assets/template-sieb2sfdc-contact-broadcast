@@ -39,12 +39,11 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 	private static final String KEY_EMAIL = "Email Address";
 	private static final String KEY_ACCOUNT = "Account";
 	
-	private static final String ANYPOINT_TEMPLATE_NAME = "sfdc2sieb-contact-broadcast";
 	private static final String INBOUND_FLOW_NAME = "mainFlow";
 	private static final int TIMEOUT_MILLIS = 120;
 
 	List<Map<String, Object>> contactsInSiebel = new ArrayList<Map<String,Object>>();
-	List<Map<String, Object>> contactsInSalesforce = new ArrayList<Map<String,Object>>();
+	List<Map<?, ?>> contactsInSalesforce = new ArrayList<Map<?, ?>>();
 	
 	
 	private SubflowInterceptingChainLifecycleWrapper deleteContactSiebel;
@@ -72,7 +71,7 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 	}
 
 	@Before
-	public void setUp() throws MuleException {
+	public void setUp() throws Exception {
 		stopAutomaticPollTriggering();
 		getAndInitializeFlows();
 		
@@ -123,9 +122,9 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 
 		for (Map<String, Object> contact : contactsInSiebel) {
 			MuleEvent event = queryContactFromSalesforce.process(getTestEvent(contact, MessageExchangePattern.REQUEST_RESPONSE));
-			ConsumerIterator<Object> it = (ConsumerIterator<Object>) event.getMessage().getPayload();
+			ConsumerIterator<?> it = (ConsumerIterator<?>) event.getMessage().getPayload();
 			while(it.hasNext()){
-				Map<String, Object> contactSalesforce = (HashMap<String, Object>)it.next();
+				Map<?, ?> contactSalesforce = (Map<?, ?>) it.next();
 				Assert.assertEquals("Contacts should be the same", contact.get(KEY_FIRST_NAME), contactSalesforce.get("FirstName"));
 				Assert.assertNotNull("There should be account for created contact", contactSalesforce.get("AccountId"));
 				contactsInSalesforce.add(contactSalesforce);
@@ -133,27 +132,22 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 		}
 	}
 
-	private void createTestDataInSandBox() {
-		try {
-			String uniqueSuffix = "" + System.currentTimeMillis();
-			
-			Map<String, Object> contactInSiebel = new HashMap<String, Object>();
-			String name = "ContactBroadcast"+ uniqueSuffix;
-			String email = name + "@gmail.com";
-			
-			contactInSiebel.put(KEY_FIRST_NAME, name);
-			contactInSiebel.put(KEY_LAST_NAME, name);
-			contactInSiebel.put(KEY_EMAIL, email);
-			contactInSiebel.put(KEY_ACCOUNT, name);
-			contactsInSiebel.add(contactInSiebel);
-			
-			MuleEvent event = createContactInSiebel.process(getTestEvent(contactInSiebel, MessageExchangePattern.REQUEST_RESPONSE));
-			CreateResult cr = (CreateResult) event.getMessage().getPayload();
-			contactInSiebel.put(KEY_ID, cr.getCreatedObjects().get(0));
-			
-		} catch(Exception e){
-			e.printStackTrace();
-		}
+	private void createTestDataInSandBox() throws Exception {
+		String uniqueSuffix = "" + System.currentTimeMillis();
+		
+		Map<String, Object> contactInSiebel = new HashMap<String, Object>();
+		String name = "ContactBroadcast"+ uniqueSuffix;
+		String email = name + "@gmail.com";
+		
+		contactInSiebel.put(KEY_FIRST_NAME, name);
+		contactInSiebel.put(KEY_LAST_NAME, name);
+		contactInSiebel.put(KEY_EMAIL, email);
+		contactInSiebel.put(KEY_ACCOUNT, name);
+		contactsInSiebel.add(contactInSiebel);
+		
+		MuleEvent event = createContactInSiebel.process(getTestEvent(contactInSiebel, MessageExchangePattern.REQUEST_RESPONSE));
+		CreateResult cr = (CreateResult) event.getMessage().getPayload();
+		contactInSiebel.put(KEY_ID, cr.getCreatedObjects().get(0));
 	}
 
 	private void deleteTestContactsFromSiebel() throws InitialisationException, MuleException, Exception {
@@ -165,25 +159,25 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 		MuleEvent event = deleteContactSiebel.process(getTestEvent(idList, MessageExchangePattern.REQUEST_RESPONSE));
 		
 		// delete previously created account
-		List<Map<String, Object>> accountsToDelete = null;
+		List<?> accountsToDelete = null;
 		for (Map<String, Object> contact : contactsInSiebel) {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("Name", contact.get(KEY_ACCOUNT));
 			event = queryAccountSiebel.process(getTestEvent(map, MessageExchangePattern.REQUEST_RESPONSE));
-			accountsToDelete = (List<Map<String, Object>>) event.getMessage().getPayload();
+			accountsToDelete = (List<?>) event.getMessage().getPayload();
 		}
 		idList = new ArrayList<String>();
-		for (Map<String, Object> item : accountsToDelete) {
-			idList.add((String)item.get("Id"));
+		for (Object item : (List<?>) accountsToDelete) {
+			idList.add((String) ((Map<?, ?>) item).get("Id"));
 		}
 		deleteAccountSiebel.process(getTestEvent(idList, MessageExchangePattern.REQUEST_RESPONSE));
 	}
 
 	private void deleteTestContactsFromSalesforce() throws InitialisationException, MuleException, Exception {
 		List<String> idList = new ArrayList<String>();
-		for (Map<String, Object> contact : contactsInSalesforce) {
-			idList.add((String)contact.get("Id"));
-			idList.add((String)contact.get("AccountId"));
+		for (Map<?, ?> contact : contactsInSalesforce) {
+			idList.add((String) contact.get("Id"));
+			idList.add((String) contact.get("AccountId"));
 		}
 		deleteObjectFromSalesforce.process(getTestEvent(idList, MessageExchangePattern.REQUEST_RESPONSE));
 	}

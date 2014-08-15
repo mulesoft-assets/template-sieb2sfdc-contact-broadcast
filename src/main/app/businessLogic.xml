@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:siebel="http://www.mulesoft.org/schema/mule/siebel" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" version="EE-3.5.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:siebel="http://www.mulesoft.org/schema/mule/siebel" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" version="EE-3.5.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
@@ -16,39 +16,33 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 
         <batch:process-records>
             <batch:step name="getContactInSalesforceStep">
-
-                <enricher source="#[payload]" target="#[recordVars['contactInB']]" doc:name="store Salesforce contact in var 'contactInB'">
+                <enricher source="#[payload]" target="#[recordVars['contactInSalesforce']]" doc:name="store Salesforce contact in var 'contactInSalesforce'">
                     <sfdc:query-single config-ref="Salesforce" query="SELECT Id FROM Contact WHERE Email = '#[payload[&quot;Email Address&quot;]]'" doc:name="query contacts from Salesforce"/>
                 </enricher>
-
             </batch:step>
             <batch:step name="findOrCreateAccountInSalesforceStep" accept-expression="payload['Account'] != ''" accept-policy="ALL">
-
-                
-                <enricher doc:name="store Salesforce account in var 'accountInTargetInstance'" source="#[payload]" target="#[recordVars['accountInTargetInstance']]">
-                    <sfdc:query-single config-ref="Salesforce" query="SELECT Id,Name from Account where Name = '#payload[&quot;Account&quot;]'" doc:name="query accounts from Salesforce"/>
-
+                <enricher doc:name="store Salesforce account in var 'accountInSalesforce'" source="#[payload]" target="#[recordVars['accountInSalesforce']]">
+                    <sfdc:query-single config-ref="Salesforce" query="SELECT Id,Name from Account where Name = '#[payload[&quot;Account&quot;]]'" doc:name="query accounts from Salesforce"/>
                 </enricher>
                 <choice doc:name="Choice">
-                    <when expression="#[recordVars['accountInTargetInstance'] is NullPayload]">
-                        <enricher source="#[payload]" target="#[recordVars['idOfAccountInTargetInstance']]" doc:name="store id of the new account in var 'idOfAccountInTargetInstance'">
+                    <when expression="#[recordVars['accountInSalesforce'] is NullPayload]">
+                        <enricher source="#[payload]" target="#[recordVars['idOfAccountInSalesforce']]" doc:name="store id of the new account in var 'idOfAccountInSalesforce'">
                             <processor-chain doc:name="Processor Chain">
                                 <expression-component doc:name="prepare account for creation"><![CDATA[String name = payload['Account'];
-payload['Account'] = new java.util.HashMap();
-payload['Account'].put('Name', name);]]></expression-component>
-                                <set-payload value="#[ [payload['Account']]]" doc:name="set to the account to be created"/>
-                                <sfdc:create config-ref="Salesforce" type="Account" doc:name="create account in Salesforce">
-                                    <sfdc:objects ref="#[payload]"/>
-                                </sfdc:create>
+payload = new java.util.HashMap();
+payload.put('Name', name);]]></expression-component>
+                                <sfdc:create-single config-ref="Salesforce" type="Account" doc:name="create account in Salesforce">
+                                    <sfdc:object ref="#[payload]"/>
+                                </sfdc:create-single>
 
 																	  
-                                <expression-transformer expression="#[payload[0].getId()]" doc:name="get the id of the account created in Salesforce"/>
+                                <expression-transformer expression="#[payload.getId()]" doc:name="get the ID of the account created in Salesforce"/>
                             </processor-chain>
                         </enricher>
                     </when>
                     <otherwise>
-                        <enricher source="#[payload]" target="#[recordVars['idOfAccountInTargetInstance']]" doc:name="store id of the existing account in Siebel in var 'idOfAccountInTargetInstance'">
-                            <expression-transformer expression="#[recordVars['accountInTargetInstance']['Id']]" doc:name="get the id of the existing account in Siebel"/>
+                        <enricher source="#[payload]" target="#[recordVars['idOfAccountInSalesforce']]" doc:name="store id of the existing account in Siebel in var 'idOfAccountInSalesforce'">
+                            <expression-transformer expression="#[recordVars['accountInSalesforce']['Id']]" doc:name="get ID of the existing account in Salesforce"/>
                         </enricher>
 
                     </otherwise>
@@ -58,14 +52,13 @@ payload['Account'].put('Name', name);]]></expression-component>
             <batch:step name="forEachContactUpsertInSalesforceStep">
 
             	<data-mapper:transform doc:name="transform Siebel contact to Salesforce contact" config-ref="Contact_Contact_To_Contact"/>
-                <expression-component doc:name="set contact's parent account id"><![CDATA[payload.put('AccountId', recordVars['idOfAccountInTargetInstance']);
+                <expression-component doc:name="set contact's parent account ID"><![CDATA[payload.put('AccountId', recordVars['idOfAccountInSalesforce']);
 
-if (recordVars['contactInB'] instanceof NullPayload){  
-  	payload.remove('Id');  
-  }  
-  else {  
-  	payload.put('Id', recordVars['contactInB']['Id']);  
-  }]]></expression-component>
+if (recordVars['contactInSalesforce'] is NullPayload){  
+	payload.remove('Id');  
+}  else {  
+	payload.put('Id', recordVars['contactInSalesforce']['Id']);  
+}]]></expression-component>
                 <batch:commit doc:name="Batch Commit" size="200">
                     <sfdc:upsert config-ref="Salesforce" externalIdFieldName="Id" type="Contact" doc:name="upsert contact in Salesforce">
                         <sfdc:objects ref="#[payload]"/>

@@ -26,9 +26,9 @@ Note that using this template is subject to the conditions of this [License Agre
 Please review the terms of the license before downloading and using this template. In short, you are allowed to use the template for free with Mule ESB Enterprise Edition, CloudHub, or as a trial in Anypoint Studio.
 
 # Use Case <a name="usecase"/>
-As a Salesforce admin I want to synchronize contacts from Siebel to SalesForce organization.
+As a Salesforce admin I want to synchronize contacts from Siebel to Salesforce organization.
 
-This Template should serve as a foundation for the process of broadcasting accounts from Siebel to Salesfoce instance. Everytime there is a new contact or a change in an already existing one, the integration will poll for changes in Siebel source instance and it will be responsible for updating the contact in the Salesforce.
+This Template should serve as a foundation for the process of broadcasting accounts from Siebel to Salesforce instance. Everytime there is a new contact or a change in an already existing one, the integration will poll for changes in Siebel source instance and it will be responsible for updating the contact in the Salesforce.
 
 Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
 
