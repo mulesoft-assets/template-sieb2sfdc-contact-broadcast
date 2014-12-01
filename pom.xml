@@ -15,7 +15,7 @@
 	<name>template-sieb2sfdc-contact-broadcast Anypoint Template Project</name>
 
 	<properties>
-		<siebel.version>1.0.0</siebel.version>
+		<siebel.version>2.0.0</siebel.version>
 	</properties>
 
 	<build>
@@ -40,8 +40,7 @@
 		</plugins>
 	</build>
 
-	<dependencies>
-		
+	<dependencies>		
 		<dependency>
 			<groupId>org.mule.modules</groupId>
 			<artifactId>mule-module-sfdc</artifactId>
@@ -52,6 +51,18 @@
             <artifactId>mule-module-siebel</artifactId>
             <version>${siebel.version}</version>
         </dependency>
+        <dependency>
+			<groupId>siebel</groupId>
+			<artifactId>siebel</artifactId>
+			<version>8.1.1.11</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>siebel</groupId>
+			<artifactId>siebel-ji-enu</artifactId>
+			<version>8.1.1.11</version>
+			<scope>test</scope>
+		</dependency>
     </dependencies>
 
 	<repositories>
@@ -65,6 +76,12 @@
 			<id>mulesoft-snapshots</id>
 			<name>MuleSoft Snapshots Repository</name>
 			<url>https://repository.mulesoft.org/nexus/content/repositories/snapshots/</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>mule-ee-thirdparty</id>
+			<name>MuleSoft Thirdparty Repository</name>
+			<url>https://repository.mulesoft.org/nexus/content/repositories/thirdparty/</url>
 			<layout>default</layout>
 		</repository>
 	</repositories>

@@ -75,7 +75,7 @@ It will be up to the user of this template to provide such information. To find 
 
 ### As source of data
 
-There are no particular considerations for this Anypoint Template regarding Siebel as data origin.
+In order to make the siebel connector work smoothly you have to provide the correct version of the siebel jars (Siebel.jar, SiebelJI_enu.jar) that works with your Siebel installation.
 
 
 
