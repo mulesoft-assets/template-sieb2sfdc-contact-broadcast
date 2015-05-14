@@ -32,7 +32,9 @@ This Template should serve as a foundation for the process of broadcasting accou
 
 Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
 
-As implemented, this Anypoint Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing). The batch job is divided in Input, Process and On Complete stages. The integration is triggered by a poll defined in the flow that is going to trigger the application, querying newest Siebel updates/creations matching a filter criteria and executing the batch job. During the Process stage, each Siebel contact will be filtered depending on, if it has an existing matching contact in the Salesforce. The last step of the Process stage will group the accounts and create/update them in Salesforce. Finally during the On Complete stage the Anypoint Template will logoutput statistics data into the console.
+As implemented, this Anypoint Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing). The batch job is divided in *Input*, *Process* and *On Complete* stages. 
+The integration is triggered by a poll querying newest Siebel updates/creations matching a filter criteria and executing the batch job. During the *Process* stage, each Siebel contact will be filtered depending on, if it has an existing matching contact in the Salesforce. 
+The last step of the *Process* stage will group the accounts and create/update them in Salesforce. Finally during the *On Complete* stage the Anypoint Template will log statistics data into the console.
 
 # Considerations <a name="considerations"/>
 
@@ -63,12 +65,12 @@ In order to have this template working as expected, you should be aware of your 
 
 ### As destination of data
 
-There are no particular considerations for this Anypoint Template regarding Siebel as data destination.
+There are no particular considerations for this Anypoint Template regarding Salesforce as data destination.
 ## Siebel Considerations <a name="siebelconsiderations"/>
 
 There may be a few things that you need to know regarding Siebel, in order for this template to work.
 
-This Anypoint Template may be using date time/timestamp fields from the Siebe in order to do comparisons and take further actions.
+This Anypoint Template may be using date time/timestamp fields from the Siebel in order to do comparisons and take further actions.
 While the template handles the time zone by sending all such fields in a neutral time zone, it can not find out on its on the time zone in which the Siebel instance is on.
 It will be up to the user of this template to provide such information. To find out more about Siebel time zones please check the following [link](http://docs.oracle.com/cd/B40099_02/books/Fundamentals/Fund_settingoptions3.html)
 
@@ -79,12 +81,17 @@ In order to make the siebel connector work smoothly you have to provide the corr
 
 
 
+
+
+
+
+
 # Run it! <a name="runit"/>
 Simple steps to get Siebel to Salesforce Contact Broadcast running.
 
 
 ## Running on premise <a name="runonopremise"/>
-In this section we detail the way you have to run you Anypoint Temple on you computer.
+In this section we detail the way you should run your Anypoint Template on your computer.
 
 
 ### Where to Download Mule Studio and Mule ESB
@@ -116,7 +123,7 @@ Once you have imported you Anypoint Template into Anypoint Studio you need to fo
 
 
 ### Running on Mule ESB stand alone <a name="runonmuleesbstandalone"/>
-Complete all properties in one of the property files, for example in [mule.prod.properties] (../blob/master/src/main/resources/mule.prod.properties) and run your app with the corresponding environment variable to use it. To follow the example, this will be `mule.env=prod`. 
+Complete all properties in one of the property files, for example in [mule.prod.properties] (../master/src/main/resources/mule.prod.properties) and run your app with the corresponding environment variable to use it. To follow the example, this will be `mule.env=prod`. 
 
 
 ## Running on CloudHub <a name="runoncloudhub"/>
@@ -131,30 +138,32 @@ Mule Studio provides you with really easy way to deploy your Template directly t
 In order to use this Mule Anypoint Template you need to configure properties (Credentials, configurations, etc.) either in properties file or in CloudHub as Environment Variables. Detail list with examples:
 ### Application configuration
 **Oracle Siebel Connector configuration**
-+ sieb.user=`user`
-+ sieb.password=`secret`
-+ sieb.server=`server`
-+ sieb.serverName=`serverName`
-+ sieb.objectManager=`objectManager`
-+ sieb.port=`2321`
+
++ sieb.user `user`
++ sieb.password `secret`
++ sieb.server `server`
++ sieb.serverName `serverName`
++ sieb.objectManager `objectManager`
++ sieb.port `2321`
 
 **Salesforce Connector configuration**
 
-+ sfdc.username=bob.dylan@sfdc
-+ sfdc.password=DylanPassword123
-+ sfdc.securityToken=avsfwCUl7apQs56Xq2AKi3X
-+ sfdc.url=https://test.salesforce.com/services/Soap/u/28.0
++ sfdc.username `bob.dylan@sfdc`
++ sfdc.password `DylanPassword123`
++ sfdc.securityToken `avsfwCUl7apQs56Xq2AKi3X`
++ sfdc.url `https://test.salesforce.com/services/Soap/u/32.0`
 
 # API Calls <a name="apicalls"/>
 Salesforce imposes limits on the number of API Calls that can be made. Therefore calculating this amount may be an important factor to consider. The Anypoint Template calls to the API can be calculated using the formula:
 
-***1 + X + X / 200***
+*** 2 * X + X / 200***
 
 Being ***X*** the number of Contacts to be synchronized on each run. 
 
 The division by ***200*** is because, by default, Contacts are gathered in groups of 200 for each Upsert API Call in the commit step. Also consider that this calls are executed repeatedly every polling cycle.	
 
-For instance if 10 records are fetched from origin instance, then 12 api calls will be made (1 + 10 + 1).
+For instance if 10 records are fetched from origin instance, then 21 api calls will be made (20 + 1).
+Please note, that for each contact for which there is not existing matching account, there is another API call to Salesforce.
 
 
 # Customize It!<a name="customizeit"/>
@@ -180,9 +189,9 @@ In the visual editor they can be found on the *Global Element* tab.
 Functional aspect of the Anypoint Template is implemented on this XML, directed by a batch job that will be responsible for creations/updates. The severeal message processors constitute four high level actions that fully implement the logic of this Anypoint Template:
 
 1. Job execution is invoked from triggerFlow (endpoints.xml) everytime there is a new query executed asking for created/updated Contacts.
-2. During the Process stage, each Siebel contact will be filtered depending on, if it has an existing matching contact in the Salesforce.
-3. The last step of the Process stage will group the contacts and create/update them in Salesforce.
-Finally during the On Complete stage the Anypoint Template will logoutput statistics data into the console.
+2. During the *Process* stage, each Siebel contact will be filtered depending on, if it has an existing matching contact in the Salesforce.
+3. The last step of the *Process* stage will group the contacts and create/update them in Salesforce.
+Finally during the *On Complete* stage the Anypoint Template will logoutput statistics data into the console.
 
 
 
@@ -192,7 +201,8 @@ This is file is conformed by a Flow containing the Poll that will periodically q
 
 
 ## errorHandling.xml<a name="errorhandlingxml"/>
-Contains a [Catch Exception Strategy](http://www.mulesoft.org/documentation/display/current/Catch+Exception+Strategy) that is only Logging the exception thrown (If so). As you imagine, this is the right place to handle how your integration will react depending on the different exceptions.
+This is the right place to handle how your integration will react depending on the different exceptions. 
+This file holds a [Choice Exception Strategy](http://www.mulesoft.org/documentation/display/current/Choice+Exception+Strategy) that is referenced by the main flow in the business logic.
 
 
 

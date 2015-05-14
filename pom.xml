@@ -6,17 +6,13 @@
 	<parent>
 		<groupId>org.mule.templates</groupId>
 		<artifactId>templates-tooling-parent-pom</artifactId>
-		<version>1.0.7</version>
+		<version>1.1.9</version>
 	</parent>
 
 	<artifactId>template-sieb2sfdc-contact-broadcast</artifactId>
 	<packaging>mule</packaging>
-	<version>1.0.4-SNAPSHOT</version>
+	<version>1.1.0-SNAPSHOT</version>
 	<name>template-sieb2sfdc-contact-broadcast Anypoint Template Project</name>
-
-	<properties>
-		<siebel.version>2.0.0</siebel.version>
-	</properties>
 
 	<build>
 		<plugins>
@@ -49,7 +45,7 @@
 		<dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-siebel</artifactId>
-            <version>${siebel.version}</version>
+            <version>${sieb.version}</version>
         </dependency>
         <dependency>
 			<groupId>siebel</groupId>

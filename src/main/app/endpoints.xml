@@ -1,24 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:imap="http://www.mulesoft.org/schema/mule/imap" xmlns:siebel="http://www.mulesoft.org/schema/mule/siebel" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http"
-      xmlns="http://www.mulesoft.org/schema/mule/core"
-      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-      xmlns:spring="http://www.springframework.org/schema/beans"
-      version="EE-3.5.2"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+<mule xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" 
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" 
+	xmlns:siebel="http://www.mulesoft.org/schema/mule/siebel" 
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans"
+	version="EE-3.6.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/siebel http://www.mulesoft.org/schema/mule/siebel/current/mule-siebel.xsd
-http://www.mulesoft.org/schema/mule/imap http://www.mulesoft.org/schema/mule/imap/current/mule-imap.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
-">
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
 
 	<!-- 	In this file you should declare all your inbound endpoints and from here controll the access to your application -->
 
-	<flow name="triggerFlow" processingStrategy="synchronous" doc:name="triggerFlow">
+	<flow name="triggerFlow" processingStrategy="synchronous" >
 		<poll doc:name="">
             <fixed-frequency-scheduler frequency="${poll.frequency}" startDelay="${poll.startDelayMillis}"/>
             <watermark variable="siebelLastQueryDate" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[org.joda.time.format.DateTimeFormat.forPattern(&quot;M/d/y H:m:s&quot;).parseMillis(payload['Last Update - SDQ'])]"/>
