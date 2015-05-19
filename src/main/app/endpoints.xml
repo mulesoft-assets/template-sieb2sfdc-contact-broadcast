@@ -18,9 +18,9 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 	<!-- 	In this file you should declare all your inbound endpoints and from here controll the access to your application -->
 
 	<flow name="triggerFlow" processingStrategy="synchronous" >
-		<poll doc:name="">
-            <fixed-frequency-scheduler frequency="${poll.frequency}" startDelay="${poll.startDelayMillis}"/>
-            <watermark variable="siebelLastQueryDate" default-expression="${watermark.default.expression}" selector="MAX" selector-expression="#[org.joda.time.format.DateTimeFormat.forPattern(&quot;M/d/y H:m:s&quot;).parseMillis(payload['Last Update - SDQ'])]"/>
+		<poll doc:name="fireup synchronization">
+            <fixed-frequency-scheduler frequency="${poll.frequencyMillis}" startDelay="${poll.startDelayMillis}"/>
+            <watermark variable="siebelLastQueryDate" default-expression="#[org.joda.time.format.DateTimeFormat.forPattern(&quot;M/d/y H:m:s&quot;).parseMillis(&quot;${watermark.default.expression}&quot;)]" selector="MAX" selector-expression="#[org.joda.time.format.DateTimeFormat.forPattern(&quot;M/d/y H:m:s&quot;).parseMillis(payload['Last Update - SDQ'])]"/>
             <siebel:query-business-components config-ref="Oracle_Siebel_Business_Objects" businessObjectComponentType="Contact.Contact" searchExpression="[Last Update - SDQ] &gt; '#[org.joda.time.format.DateTimeFormat.forPattern(&quot;M/d/y H:m:s&quot;).print(flowVars['siebelLastQueryDate'])]'" doc:name="query accounts with filtering criteria from Oracle Siebel">
                 <siebel:fields-to-retrieve>
                 	<siebel:fields-to-retrieve>Id</siebel:fields-to-retrieve>

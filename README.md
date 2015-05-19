@@ -137,6 +137,13 @@ Mule Studio provides you with really easy way to deploy your Template directly t
 ## Properties to be configured (With examples) <a name="propertiestobeconfigured"/>
 In order to use this Mule Anypoint Template you need to configure properties (Credentials, configurations, etc.) either in properties file or in CloudHub as Environment Variables. Detail list with examples:
 ### Application configuration
+**Common configuration**
+		
++ watermark.default.expression `"05/19/2015 10:00:00"`
++ page.size `100`
++ poll.frequencyMillis `30000`
++ poll.startDelayMillis `0`		
+	
 **Oracle Siebel Connector configuration**
 
 + sieb.user `user`

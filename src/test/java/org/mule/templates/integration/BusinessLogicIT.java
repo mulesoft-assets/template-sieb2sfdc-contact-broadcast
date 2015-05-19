@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -65,8 +68,10 @@ public class BusinessLogicIT extends AbstractTemplateTestCase {
 		// Set polling delay
 		System.setProperty("poll.startDelayMillis", "0");
 
-		// Set default water-mark expression to current time
-		System.setProperty("watermark.default.expression", "#[System.currentTimeMillis() - 1000 * 60 * 60 * 10]");
+		// Set default water-mark expression to current time - 1 day
+		DateTimeFormatter fmt = DateTimeFormat.forPattern("M/d/y H:m:s");
+		String defaultWatermarkString = fmt.print(new DateTime().minusDays(1));
+		System.setProperty("watermark.default.expression",	defaultWatermarkString);  // one day ago
 	}
 
 	@Before
