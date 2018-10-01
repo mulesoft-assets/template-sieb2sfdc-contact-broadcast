@@ -30,7 +30,7 @@ http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mu
 					<flow-ref doc:name="Create Accounts in Salesforce" doc:id="9111c9f8-4c2d-4670-a363-67b05cf73744"
 						name="createAccountsInSalesforce" />
 				</batch:step>
-				<batch:step name="upsertContactsInSalesforceStep" doc:id="f24d91c6-5212-4d06-87cf-ed0afc34a04e">
+				<batch:step name="upsertContactsInSalesforceStep" doc:id="f24d91c6-5212-4d06-87cf-ed0afc34a04e" acceptExpression='#[payload["Email Address"] != "" and payload["Email Address"] != null]'>
 					<ee:transform doc:name="Contact data for Salesforce"
 						doc:id="b8f9ad70-d435-4e3a-9278-3ff3f07fbf57">
 						<ee:message>
