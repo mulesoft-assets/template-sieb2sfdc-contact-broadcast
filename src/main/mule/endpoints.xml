@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:siebel="http://www.mulesoft.org/schema/mule/siebel"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/siebel http://www.mulesoft.org/schema/mule/siebel/current/mule-siebel.xsd">
+
+	<flow name="schedulerFlow" doc:id="aff4106d-d2f6-4366-940a-a380dcb1cf73">
+		<scheduler doc:name="Scheduler" doc:id="58b7c776-fbee-4753-9bea-f6cc3e037efd">
+			<scheduling-strategy>
+				<fixed-frequency frequency="${scheduler.frequency}"
+					startDelay="${scheduler.start.delay}" />
+			</scheduling-strategy>
+		</scheduler>
+		<flow-ref doc:name="queryFlow" doc:id="ada07859-8839-4751-9623-68a08d31a472"
+			name="queryFlow" />
+		<logger level="INFO" doc:name="Log Contacts to sync"
+			doc:id="65934ef1-2939-4fab-bde9-1886331527ea" message="#['Contacts to sync: ' ++ write(payload)]" />
+		<flow-ref name="businessLogicFlow" doc:name="businessLogicFlow"
+			doc:id="e16bf02c-b833-47de-afd5-2329ce1fab2b" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true"
+				logException="true" doc:name="On Error Propagate" doc:id="488b507d-e26c-4c56-8759-8bb4f6645d71"
+				type="ANY">
+				<flow-ref doc:name="errorHandlingFlow" doc:id="afdaf73c-0137-4d60-84f6-5c41234771a3"
+					name="errorHandlingFlow" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="queryFlow">
+		<os:retrieve key="watermark" objectStore="watermarkStore"
+			target="lastQueryTimestamp" doc:name="Retrieve lastQueryTimestamp">
+			<os:default-value><![CDATA[${watermark.default.expression}]]></os:default-value>
+		</os:retrieve>
+		<ee:transform doc:name="query Contacts with filtering criteria from Siebel"
+			doc:id="681a0235-b067-4746-9ea3-97cf875c6429">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"fields" : ["Id", "First Name", "Last Name", "Work Phone #","Home Phone #",
+	"Email Address", "Fax Phone #",  "Assistant","Department", "Account","Last Update - SDQ" ],
+	"searchSpec": {
+		"Last Update - SDQ": "> '"++ vars.lastQueryTimestamp ++ "'",
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<siebel:query-business-components
+			businessObjectComponentType="Contact.Contact" doc:name="Get Contact from Siebel"
+			doc:id="9976f832-660a-43ba-94c8-6347c39bbade" config-ref="Siebel_JDB_Siebel" />
+		<os:store key="watermark" failOnNullValue="false"
+			objectStore="watermarkStore" doc:name="Store lastQueryTimestamp">
+			<os:value><![CDATA[#[max(payload map $["Last Update - SDQ"])]]]></os:value>
+		</os:store>
+
+	</flow>
+</mule>
+
+
+        

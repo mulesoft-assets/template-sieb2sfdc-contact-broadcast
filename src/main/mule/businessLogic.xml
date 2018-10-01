@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+
+
+	<flow name="businessLogicFlow" doc:id="8759532e-79b7-4789-990c-dc8e162bfd67">
+		<batch:job jobName="migrateContactsBatch" doc:id="204892ae-0d97-4326-beae-310c8d52b7a6"
+			blockSize="${page.size}">
+			<batch:process-records>
+				<batch:step name="getContactsFromSalesforceBatchStep"
+					doc:id="69a60cff-4a3b-4bc0-9a14-cf550811a114"
+					acceptExpression='#[payload["Email Address"] != "" and payload["Email Address"] != null]'>
+					<flow-ref doc:name="Get Contacts from Salesforce" doc:id="cd8dfa9b-be11-495e-9d84-6bf60c9827e7"
+						name="getContactsFromSalesforce" />
+				</batch:step>
+				<batch:step name="getAccountFromSalesforce" doc:id="c17fe1ab-cdc2-4a31-882a-f94c77e13d0f"
+					acceptExpression='#[payload["Account"] != "" and  payload["Account"] != null]'>
+					<flow-ref doc:name="Get Accounts from Salesforce" doc:id="49574134-607e-4899-a03c-54dd6451a2c6"
+						name="getAccountsFromSalesforce" />
+				</batch:step>
+				<batch:step name="createAccountInSalesforce" doc:id="75576808-50a9-494e-bfa9-dbf7a3d51eb2"
+					acceptExpression='#[payload["Account"] != "" and  payload["Account"] != null and payload["accountID"]== null ]'>
+					<flow-ref doc:name="Create Accounts in Salesforce" doc:id="9111c9f8-4c2d-4670-a363-67b05cf73744"
+						name="createAccountsInSalesforce" />
+				</batch:step>
+				<batch:step name="upsertContactsInSalesforceStep" doc:id="f24d91c6-5212-4d06-87cf-ed0afc34a04e">
+					<ee:transform doc:name="Contact data for Salesforce"
+						doc:id="b8f9ad70-d435-4e3a-9278-3ff3f07fbf57">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	(Id            : payload.salesforceID) if payload.salesforceID != null,
+	AccountId      : payload.accountID,
+	Department     : payload.Department,
+	FirstName      : payload."First Name",
+	LastName       : payload."Last Name",
+	Email          : payload."Email Address",
+	Phone          : payload."Work Phone #",
+	HomePhone      : payload."Home Phone #",
+	Fax            : payload."Fax Phone #",
+	AssistantName  : payload.Assistant
+}]]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<salesforce:upsert type="Contact"
+						doc:name="Upsert Contact in Salesforce" doc:id="bd778706-492e-4ced-8751-b377770f4813"
+						config-ref="Salesforce_Config" externalIdFieldName="Id" />
+					<logger level="INFO" doc:name="Log result"
+						doc:id="86695ff8-00e2-4c7e-9df7-9fcc4980b0e9" message="#[output application/json --- payload]" />
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete>
+				<ee:transform doc:name="Prepare migration result"
+					doc:id="c84b4bc4-5a65-41c1-9d0c-f1ebd3d8db7a">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+"Migration Report: \n"
+
+++ "\n Time [milliseconds]: " 		++ payload.elapsedTimeInMillis!
+++ "\n Total Records: "				++ payload.totalRecords!
+++ "\n Successful Records: "		++ payload.successfulRecords!
+++ "\n Failed Records: "			++ payload.failedRecords!
+++ "\n Loaded Records: "			++ payload.loadedRecords!
+++ "\n Processed Records: " 		++ payload.processedRecords!]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Migration process has finished!"
+					doc:id="b7575d38-7dbd-4602-9186-1bbb25234896" message="Migration process has finished: #[payload]" />
+
+			</batch:on-complete>
+
+		</batch:job>
+	</flow>
+	<flow name="getContactsFromSalesforce" doc:id="ae40584d-2bd2-4210-87a9-b3927a117d00">
+		<ee:transform doc:name="Set siebelContact variable"
+			doc:id="d51823d0-e816-437e-a2af-5fcf8f0a8c9b">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="siebelContact"><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<salesforce:query-single doc:name="Get Salesforce contact by email"
+			doc:id="e7e630eb-b54d-485a-8c0d-e30dfb7eb760" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query>SELECT Id FROM Contact WHERE Email =
+				':email'
+			</salesforce:salesforce-query>
+			<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	"email" : payload."Email Address"
+}]]]></salesforce:parameters>
+		</salesforce:query-single>
+		<ee:transform doc:name="Set Salesforce ID"
+			doc:id="17bb7271-b40e-4874-aa39-36111c31c598">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+vars.siebelContact ++ {
+	salesforceID : payload.Id
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="salesforceID"><![CDATA[%dw 2.0
+output application/java
+---
+payload.id]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<remove-variable doc:name="Remove siebelContact variable"
+			doc:id="e3da3cf3-0c79-40aa-9fb3-15cd6f9efdb0" variableName="siebelContact" />
+	</flow>
+
+	<flow name="getAccountsFromSalesforce" doc:id="67ad693f-13ef-4327-a10b-2c37276704cd">
+		<ee:transform doc:name="Set siebelContact variable"
+			doc:id="8ba5b396-6f59-4a10-82fa-494edb910fe2">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="siebelContact"><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<salesforce:query-single doc:name="Get Salesforce Account"
+			doc:id="30282ca8-063a-4b6c-b760-df0914e95d41" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query>SELECT Id FROM Account WHERE Name =
+				':name'
+			</salesforce:salesforce-query>
+			<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	"name" : payload.Account
+}]]]></salesforce:parameters>
+		</salesforce:query-single>
+		<ee:transform doc:name="Set Account ID"
+			doc:id="e9d1b77d-3963-478f-9c22-cdbc4b6fb110">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+vars.siebelContact ++ {
+	accountID : payload.Id
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="accountID"><![CDATA[%dw 2.0
+output application/java
+---
+payload.id]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+
+		<remove-variable doc:name="Remove siebelContact variable"
+			doc:id="38914f24-7979-48ea-826a-47421c702d89" variableName="siebelContact" />
+	</flow>
+
+	<flow name="createAccountsInSalesforce" doc:id="76c6282b-7e98-4ebf-beee-e52f03cdda50">
+		<ee:transform doc:name="Set data Account"
+			doc:id="ca86ada7-0755-4f03-9850-d554a07527d3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	Name: payload.Account
+}]]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="siebelContact"><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<salesforce:create type="Account"
+			doc:name="Create Account in Salesforce" doc:id="6241ea03-4ac1-4ac8-9938-5028ee16cc0e"
+			config-ref="Salesforce_Config" />
+		<ee:transform doc:name="Set Account ID"
+			doc:id="28ace928-d2fd-4151-95a8-93f7c8d383b6">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+vars.siebelContact ++ {
+	accountID : payload[0].id
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="accountID"><![CDATA[%dw 2.0
+output application/java
+---
+payload[0].id]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+
+		<remove-variable doc:name="Remove siebelContact variable"
+			doc:id="2236efb9-b267-42ef-b5bf-ce0ad5283ef4" variableName="siebelContact" />
+	</flow>
+</mule>
+
+
+        
