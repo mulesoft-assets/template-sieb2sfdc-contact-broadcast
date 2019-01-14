@@ -27,14 +27,12 @@ http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mu
 			password="${sfdc.password}" securityToken="${sfdc.securityToken}"
 			timeObjectStore="watermarkStore" />
 	</salesforce:sfdc-config>
+	<global-property doc:name="Global Property" name="mule.env"
+		value="dev" />
 	<configuration-properties doc:name="Configuration properties"
 		doc:id="7584fb1d-2fa2-445a-b949-eed01f5785bd" file="common.properties" />
 	<configuration-properties doc:name="Configuration properties"
 		doc:id="86e0eb9d-cf2e-451a-9e09-b4afdf13e0e9" file="mule.${mule.env}.properties" />
-	<configuration-properties doc:name="Configuration properties"
-		doc:id="0abdf143-d5d1-4168-bdbd-7e3722442725" file="mule-artifact.properties" />
-	<global-property doc:name="Global Property" name="mule.env"
-		value="dev" />
 
 </mule>
 
