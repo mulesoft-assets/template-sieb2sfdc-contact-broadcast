@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<configuration>
+	<placeholders>
+		<placeholder id="template_name">Siebel to Salesforce Contact Broadcast</placeholder>
+	</placeholders>
+	<sections>
+		<section id="use_case">
+			<![CDATA[
+As a Salesforce admin I want to synchronize contacts from Siebel to Salesforce organization.
+
+This Template should serve as a foundation for the process of broadcasting accounts from Siebel to Salesforce instance. Everytime there is a new contact or a change in an already existing one, the integration will poll for changes in Siebel source instance and it will be responsible for updating the contact in the Salesforce.
+
+Requirements have been set not only to be used as examples, but also to establish a starting point to adapt your integration to your requirements.
+
+As implemented, this Anypoint Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing). The batch job is divided in  *Process* and *On Complete* stages. 
+The integration is triggered by a scheduler querying newest Siebel updates/creations matching a filter criteria and executing the batch job. During the *Process* stage, each Siebel contact will be filtered depending on, if it has an existing matching contact in the Salesforce. 
+The last step of the *Process* stage will group the accounts and create/update them in Salesforce. Finally during the *On Complete* stage the Anypoint Template will log statistics data into the console.
+]]>
+		</section>
+		<section id="considerations">
+<![CDATA[
+To make this Anypoint Template run, there are certain preconditions that must be considered. All of them deal with the preparations in both source and destination systems, that must be made in order for all to run smoothly. **Failing to do so could lead to unexpected behavior of the template.**
+]]>
+		</section>
+		<section id="sieb_src">
+		<![CDATA[
+In order to make the siebel connector work smoothly you have to provide the correct version of the siebel jars (Siebel.jar, SiebelJI_enu.jar) that works with your Siebel installation.
+]]>
+		</section>
+		<section id="application_configuration">
+			<![CDATA[ 
+			
+**Common configuration**
+		
++ page.size `100`
++ scheduler.frequency `30000`
++ scheduler.start.delay `0`		
+
+**Salesforce Connector configuration**
+
++ sfdc.username `bob.dylan@sfdc`
++ sfdc.password `DylanPassword123`
++ sfdc.securityToken `avsfwCUl7apQs56Xq2AKi3X`
+	
+**Oracle Siebel Connector configuration**
+
++ sieb.user `user`
++ sieb.password `secret`
++ sieb.server `server`
++ sieb.serverName `serverName`
++ sieb.objectManager `objectManager`
++ sieb.port `2321`
+
+**Watermarking default last query timestamp in MM/dd/yy HH:mm:ss**
+
++ watermark.default.expression `"05/19/2015 10:00:00"`
+]]>
+		</section>
+		<section id="api_calls">
+			<![CDATA[ 
+Salesforce imposes limits on the number of API Calls that can be made. Therefore calculating this amount may be an important factor to consider. The Anypoint Template calls to the API can be calculated using the formula:
+
+*** 2 * X + X / 200***
+
+Being ***X*** the number of Contacts to be synchronized on each run. 
+
+The division by ***200*** is because, by default, Contacts are gathered in groups of 200 for each Upsert API Call in the commit step. Also consider that this calls are executed repeatedly every polling cycle.	
+
+For instance if 10 records are fetched from origin instance, then 21 api calls will be made (20 + 1).
+Please note, that for each contact for which there is not existing matching account, there is another API call to Salesforce.
+]]>
+		</section>
+		<section id="default_business_logic_xml">
+		<![CDATA[
+Functional aspect of the Anypoint Template is implemented on this XML, directed by a batch job that will be responsible for creations/updates. The severeal message processors constitute four high level actions that fully implement the logic of this Anypoint Template:
+
+1. Job execution is invoked from triggerFlow (endpoints.xml) everytime there is a new query executed asking for created/updated Contacts.
+2. During the *Process* stage, each Siebel contact will be filtered depending on, if it has an existing matching contact in the Salesforce.
+3. The last step of the *Process* stage will group the contacts and create/update them in Salesforce.
+Finally during the *On Complete* stage the Anypoint Template will logoutput statistics data into the console.
+]]>
+		</section>
+		<section id="default_endpoints_xml">
+		<![CDATA[
+This is file is conformed by a Flow containing the Scheduler that will periodically query Siebel for updated/created Contacts that meet the defined criteria in the query. And then executing the batch job process with the query results.
+]]>
+		</section>
+	</sections>
+</configuration>
