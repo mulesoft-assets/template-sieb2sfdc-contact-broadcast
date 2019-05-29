@@ -28,10 +28,10 @@ http://www.mulesoft.org/schema/mule/siebel http://www.mulesoft.org/schema/mule/s
 output application/java
 var id= randomInt(1000)
 ---
-{	
+{
 	FirstName: "TestRecord" ++ id,
 	LastName: "LastName" ++ id,
-    Email: "email" ++ id ++ "@gmail.com", 
+    Email: "email" ++ id ++ "@gmail.com",
     Department: "testDepartment",
     HomePhone: "+421999555"
 }
@@ -57,12 +57,12 @@ var id= randomInt(1000)
 			<siebel:business-component-fields><![CDATA[#[{
 	"First Name": vars.testInterpreter1.FirstName,
     "Last Name": vars.testInterpreter1.LastName,
-    "Email Address": vars.testInterpreter1.Email,    
+    "Email Address": vars.testInterpreter1.Email,
     "Department": vars.testInterpreter1.Department,
     "Home Phone #": vars.testInterpreter1.HomePhone,
     "Work Phone #": vars.testInterpreter1.Phone,
     "Cellular Phone #": vars.testInterpreter1.MobilePhone
-	
+
 }]]]></siebel:business-component-fields>
 		</siebel:upsert-business-component>
 		<set-variable value="#[payload.createdObjectId]"
@@ -74,12 +74,12 @@ var id= randomInt(1000)
 			<siebel:business-component-fields><![CDATA[#[{
 	"First Name": vars.testInterpreter2.FirstName,
     "Last Name": vars.testInterpreter2.LastName,
-    "Email Address": vars.testInterpreter2.Email,    
+    "Email Address": vars.testInterpreter2.Email,
     "Department": vars.testInterpreter2.Department,
     "Home Phone #": vars.testInterpreter2.HomePhone,
     "Work Phone #": vars.testInterpreter2.Phone,
     "Cellular Phone #": vars.testInterpreter2.MobilePhone
-	
+
 }]]]></siebel:business-component-fields>
 		</siebel:upsert-business-component>
 		<set-variable value="#[payload.createdObjectId]"
@@ -113,8 +113,8 @@ var id= randomInt(1000)
 					<ee:set-payload><![CDATA[%dw 2.0
 output application/java
 ---
-payload filter 
-($."First Name" == vars.testInterpreter1.FirstName or 
+payload filter
+($."First Name" == vars.testInterpreter1.FirstName or
 $."First Name" == vars.testInterpreter2.FirstName )]]></ee:set-payload>
 				</ee:message>
 			</ee:transform>
@@ -133,10 +133,10 @@ $."First Name" == vars.testInterpreter2.FirstName )]]></ee:set-payload>
 		<munit:validation>
 			<munit-tools:assert-that doc:name="Assert test migrated testRecord1"
 				doc:id="fdd1795d-4692-4e8d-ba9f-35b5d3121186" expression="#[vars.resultTestRecord1]"
-				is="#[MunitTools::equalTo(true)]" />
+				is="#[MunitTools::equalTo(true)]" message="Assert test migrated testRecord1 has failed"/>
 			<munit-tools:assert-that doc:name="Assert test updated testRecord2"
 				doc:id="f28924c9-de58-408e-91cd-18eda57ea0ea" expression="#[vars.resultTestRecord2]"
-				is="#[MunitTools::equalTo(true)]" />
+				is="#[MunitTools::equalTo(true)]" message="Assert test updated testRecord2 has failed"/>
 		</munit:validation>
 	</munit:test>
 	<sub-flow name="testRecord1" doc:id="d56875b0-d885-4852-9475-4ca1d3596f0c">
